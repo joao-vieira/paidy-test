@@ -4,6 +4,7 @@ target
 .ensime
 .ensime_lucene
 .ensime_cache
+*.conf
 TAGS
 \#*#
 *~
