@@ -16,7 +16,6 @@ scalacOptions ++= Seq(
   "-language:implicitConversions", // Allow definition of implicit functions called views
   "-unchecked", // Enable additional warnings where generated code depends on assumptions.
   "-Xcheckinit", // Wrap field accessors to throw an exception on uninitialized access.
-  "-Xfatal-warnings", // Fail the compilation if there are any warnings.
   "-Xlint:adapted-args", // Warn if an argument list is modified to match the receiver.
   "-Xlint:delayedinit-select", // Selecting member of DelayedInit.
   "-Xlint:inaccessible", // Warn about inaccessible types in method signatures.
@@ -69,3 +68,7 @@ libraryDependencies ++= Seq(
 )
 
 libraryDependencies += "org.scalaj" % "scalaj-http_2.11" % "2.3.0"
+libraryDependencies += "io.spray" %%  "spray-json" % "1.3.6"
+libraryDependencies += "org.json4s" %% "json4s-native" % "4.1.0-M1"
+
+enablePlugins(JavaAppPackaging)

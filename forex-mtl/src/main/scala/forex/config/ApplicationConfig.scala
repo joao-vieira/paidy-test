@@ -9,5 +9,6 @@ case class ApplicationConfig(
 case class HttpConfig(
     host: String,
     port: Int,
-    timeout: FiniteDuration
+    timeout: FiniteDuration,
+    api_key: String
 )
