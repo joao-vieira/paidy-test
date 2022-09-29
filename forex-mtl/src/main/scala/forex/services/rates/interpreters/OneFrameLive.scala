@@ -16,17 +16,13 @@ import java.time.OffsetDateTime
 
 import scalaj.http.{Http}
 
-case class Info(pairRec: Rate.Pair, timeRec: OffsetDateTime,  priceRec: BigDecimal ){
-  var pairObj:Rate.Pair = pairRec;
-  var timeObj:OffsetDateTime = timeRec;
-  var priceObj:BigDecimal = priceRec;
-}
+class Info(var pairObj: Rate.Pair, var timeObj: OffsetDateTime,  var priceObj: BigDecimal )
 
 class OneFrameLive[F[_]: Applicative]() extends Algebra[F] {
   
   val Memo = new scala.collection.mutable.HashMap[Rate.Pair, Info]
 
-  override def get(pair: Rate.Pair) : String =
+  override def get(pair: Rate.Pair) : F[Error Either Rate] =
   {
     //Rate(pair, Price(BigDecimal(100)), Timestamp.now).asRight[Error].pure[F]
     
@@ -34,17 +30,16 @@ class OneFrameLive[F[_]: Applicative]() extends Algebra[F] {
       implicit val formats = DefaultFormats
       
       val tempinfo = Memo.get(pair)
-      val tempprice = Memo.get(pair)
       //val price = Memo.get(pair)(priceObj)
       
-      val info = tempinfo.timeObj
-      val price = tempinfo.priceObj
+      val time = tempinfo.map(_.timeObj).get
+      val price = tempinfo.map(_.priceObj).get
       
       val offset = OffsetDateTime.now()
       val timeDif = Duration(offset.toEpochSecond - time.toEpochSecond, SECONDS)
       
       if (timeDif <= 300.second){
-        price.toString
+        Rate(pair, price, time).asRight[Error].pure[F]
       }
       else{
 
@@ -62,10 +57,24 @@ class OneFrameLive[F[_]: Applicative]() extends Algebra[F] {
         
         //val retPrice = jsonRequest.extract[Price]
         val retPrice = (jsonRequest \ "price").extract[String]
-        retPrice.toString
+        Rate(pair, Price(BigDecimal(retPrice.toInt)), Timestamp.now).asRight[Error].pure[F]
 
       }
     }
-    else ""
+    else{
+        val config = ConfigSource.default.at("app").loadOrThrow[ApplicationConfig]
+        val response = Http("localhost:8080/rates")
+          .param("pair", pair.from.toString + pair.to.toString)
+          .headers(Seq("Authorization" -> ("token: " + config.http.api_key), "Accept" -> "application/json"))
+          .asString
+          .body
+        
+        //not found: value parse
+        val jsonRequest = parse(response)
+        
+        //val retPrice = jsonRequest.extract[Price]
+        val retPrice = (jsonRequest \ "price").extract[String]
+        Rate(pair, Price(BigDecimal(retPrice.toInt)), Timestamp.now).asRight[Error].pure[F]
+    }
   }
 }
