@@ -57,8 +57,8 @@ class OneFrameLive[F[_]: Applicative]() extends Algebra[F] {
         
         //val retPrice = jsonRequest.extract[Price]
         val retPrice = (jsonRequest \ "price").extract[String]
+        Memo += pair -> (Price(BigDecimal(retPrice.toInt)), Timestamp.now)
         Rate(pair, Price(BigDecimal(retPrice.toInt)), Timestamp.now).asRight[Error].pure[F]
-
       }
     }
     else{
@@ -74,6 +74,7 @@ class OneFrameLive[F[_]: Applicative]() extends Algebra[F] {
         
         //val retPrice = jsonRequest.extract[Price]
         val retPrice = (jsonRequest \ "price").extract[String]
+        Memo += pair -> (Price(BigDecimal(retPrice.toInt)), Timestamp.now)
         Rate(pair, Price(BigDecimal(retPrice.toInt)), Timestamp.now).asRight[Error].pure[F]
     }
   }
