@@ -16,7 +16,6 @@ object Dependencies {
     val scalaTest           = "3.2.7"
     val catsScalaCheck      = "0.3.0"
     val scalaj              = "2.4.2"
-    val spray               = "1.3.6"
     val json4s              = "4.1.0-M1"
   }
 
@@ -29,7 +28,6 @@ object Dependencies {
     lazy val fs2                 = "co.fs2"                %% "fs2-core"                   % Versions.fs2
 
     lazy val scalaj              = "org.scalaj"            % "scalaj-http_2.13"            % Versions.scalaj
-    lazy val spray               = "io.spray"              %% "spray-json"                 % Versions.spray
     lazy val json4s              = "org.json4s"            %% "json4s-native"              % Versions.json4s
 
     lazy val http4sDsl           = http4s("http4s-dsl")

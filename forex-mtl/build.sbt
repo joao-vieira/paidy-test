@@ -54,7 +54,6 @@ libraryDependencies ++= Seq(
   Libraries.catsEffect,
   Libraries.fs2,
   Libraries.scalaj,
-  Libraries.spray,
   Libraries.json4s,
   Libraries.http4sDsl,
   Libraries.http4sServer,
@@ -69,5 +68,3 @@ libraryDependencies ++= Seq(
   Libraries.scalaCheck       % Test,
   Libraries.catsScalaCheck   % Test
 )
-
-enablePlugins(JavaAppPackaging)
