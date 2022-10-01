@@ -10,5 +10,5 @@ case class HttpConfig(
     host: String,
     port: Int,
     timeout: FiniteDuration,
-    api_key: String
+    apikey: String
 )

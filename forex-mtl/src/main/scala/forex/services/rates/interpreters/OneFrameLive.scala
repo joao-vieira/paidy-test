@@ -23,66 +23,50 @@ import scalaj.http.{Http}
 class Info(var pairObj: Rate.Pair, var priceObj: BigDecimal, var timeObj: Timestamp )
 
 class OneFrameLive[F[_]: Applicative]() extends Algebra[F] {
-  
   implicit val formats = DefaultFormats
   val Memo = new scala.collection.mutable.HashMap[Rate.Pair, Info]
+  
+  def requestFromAPI(pair:Rate.Pair) : Info =
+  {
+      val config = ConfigSource.default.at("app").loadOrThrow[ApplicationConfig]
+      val response = Http("http://0.0.0.0:8080/rates")
+        .param("pair", pair.from.toString + pair.to.toString)
+        .header("token", config.http.apikey)
+        .asString
+        .body
+      
+      val jsonPrice = parse(response) \\ "price"
+      
+      val returnPrice = (jsonPrice).extract[String]
+      new Info(pair, BigDecimal(returnPrice.toDouble), Timestamp.now )
+  }
 
   override def get(pair: Rate.Pair) : F[Error Either Rate] =
   {
-    //Rate(pair, Price(BigDecimal(100)), Timestamp.now).asRight[Error].pure[F]
+    val inMemoBool = Memo.contains(pair)
     
-    if (Memo.contains(pair)){
+    if (inMemoBool){
+      val infoObject = Memo.get(pair)
       
-      
-      val tempinfo = Memo.get(pair)
-      //val price = Memo.get(pair)(priceObj)
-      
-      val time = tempinfo.map(_.timeObj).get
-      val price = tempinfo.map(_.priceObj).get
+      val time = infoObject.map(_.timeObj).get
+      val price = infoObject.map(_.priceObj).get
       
       val offset = OffsetDateTime.now()
       val timeDif = Duration(offset.toEpochSecond - time.value.toEpochSecond, SECONDS)
-      
+    
       if (timeDif <= 300.second){
         Rate(pair, Price(price), time).asRight[Error].pure[F]
       }
       else{
-
-        //config <- Config.stream("app")
-        //val config = ConfigSource.resources("app").load[ApplicationConfig]
-        val config = ConfigSource.default.at("app").loadOrThrow[ApplicationConfig]
-        val response = Http("localhost:8080/rates")
-          .param("pair", pair.from.toString + pair.to.toString)
-          .headers(Seq("Authorization" -> ("token: " + config.http.api_key), "Accept" -> "application/json"))
-          .asString
-          .body
-        
-        //not found: value parse
-        val jsonRequest = parse(response)
-        
-        //val retPrice = jsonRequest.extract[Price]
-        val retPrice = (jsonRequest \ "price").extract[String]
-        val infoToSave = new Info(pair, BigDecimal(retPrice.toInt), Timestamp.now  )
+        val infoToSave = requestFromAPI(pair)
         Memo += pair -> infoToSave
-        Rate(pair, Price(BigDecimal(retPrice.toInt)), Timestamp.now).asRight[Error].pure[F]
+        Rate(pair, Price(BigDecimal(infoToSave.priceObj.toDouble)), Timestamp.now).asRight[Error].pure[F]
       }
     }
     else{
-        val config = ConfigSource.default.at("app").loadOrThrow[ApplicationConfig]
-        val response = Http("localhost:8080/rates")
-          .param("pair", pair.from.toString + pair.to.toString)
-          .headers(Seq("Authorization" -> ("token: " + config.http.api_key), "Accept" -> "application/json"))
-          .asString
-          .body
-        
-        //not found: value parse
-        val jsonRequest = parse(response)
-        
-        //val retPrice = jsonRequest.extract[Price]
-        val retPrice = (jsonRequest \ "price").extract[String]
-        val infoToSave = new Info(pair, BigDecimal(retPrice.toInt), Timestamp.now )
-        Memo += pair -> infoToSave
-        Rate(pair, Price(BigDecimal(retPrice.toInt)), Timestamp.now).asRight[Error].pure[F]
+      val infoToSave = requestFromAPI(pair)
+      Memo += pair -> infoToSave
+      Rate(pair, Price(BigDecimal(infoToSave.priceObj.toDouble)), Timestamp.now).asRight[Error].pure[F]
     }
   }
 }

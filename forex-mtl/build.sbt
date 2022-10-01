@@ -67,7 +67,7 @@ libraryDependencies ++= Seq(
   Libraries.catsScalaCheck   % Test
 )
 
-libraryDependencies += "org.scalaj" % "scalaj-http_2.11" % "2.3.0"
+libraryDependencies += "org.scalaj" % "scalaj-http_2.13" % "2.4.2"
 libraryDependencies += "io.spray" %%  "spray-json" % "1.3.6"
 libraryDependencies += "org.json4s" %% "json4s-native" % "4.1.0-M1"
 
