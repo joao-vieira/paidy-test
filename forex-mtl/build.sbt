@@ -53,6 +53,9 @@ libraryDependencies ++= Seq(
   Libraries.cats,
   Libraries.catsEffect,
   Libraries.fs2,
+  Libraries.scalaj,
+  Libraries.spray,
+  Libraries.json4s,
   Libraries.http4sDsl,
   Libraries.http4sServer,
   Libraries.http4sCirce,
@@ -66,9 +69,5 @@ libraryDependencies ++= Seq(
   Libraries.scalaCheck       % Test,
   Libraries.catsScalaCheck   % Test
 )
-
-libraryDependencies += "org.scalaj" % "scalaj-http_2.13" % "2.4.2"
-libraryDependencies += "io.spray" %%  "spray-json" % "1.3.6"
-libraryDependencies += "org.json4s" %% "json4s-native" % "4.1.0-M1"
 
 enablePlugins(JavaAppPackaging)
