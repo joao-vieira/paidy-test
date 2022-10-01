@@ -5,7 +5,9 @@ On a command line, type `sbt compile` to compile the program. Then, type `sbt ru
 
 ## How to make requests
 By default, the server is running on 0.0.0.0:8081, although this value can be changed in application.conf.
+
 Format for requests: "http://localhost:8081/rates?from={FROM_CURRENCY}&to={TO_CURRENCY}"
+
 Where {FROM_CURRENCY} and {TO_CURRENCY} are your original and target currency, respectively.
 
 ## Before Running
