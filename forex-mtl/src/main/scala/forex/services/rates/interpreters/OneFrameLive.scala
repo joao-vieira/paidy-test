@@ -2,24 +2,29 @@ package forex.services.rates.interpreters
 
 import forex.services.rates.Algebra
 import cats.Applicative
-import forex.domain.{ Rate }
+import forex.domain.{ Rate, Price, Timestamp }
 import scala.concurrent.duration._
 import forex.config._
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
+
+import cats._
+import implicits._
 
 import org.json4s._
 import org.json4s.native.JsonMethods._
 import org.json4s.DefaultFormats
 
 import java.time.OffsetDateTime
+import forex.services.rates.errors.Error
 
 import scalaj.http.{Http}
 
-class Info(var pairObj: Rate.Pair, var timeObj: OffsetDateTime,  var priceObj: BigDecimal )
+class Info(var pairObj: Rate.Pair, var priceObj: BigDecimal, var timeObj: Timestamp )
 
 class OneFrameLive[F[_]: Applicative]() extends Algebra[F] {
   
+  implicit val formats = DefaultFormats
   val Memo = new scala.collection.mutable.HashMap[Rate.Pair, Info]
 
   override def get(pair: Rate.Pair) : F[Error Either Rate] =
@@ -27,7 +32,7 @@ class OneFrameLive[F[_]: Applicative]() extends Algebra[F] {
     //Rate(pair, Price(BigDecimal(100)), Timestamp.now).asRight[Error].pure[F]
     
     if (Memo.contains(pair)){
-      implicit val formats = DefaultFormats
+      
       
       val tempinfo = Memo.get(pair)
       //val price = Memo.get(pair)(priceObj)
@@ -36,10 +41,10 @@ class OneFrameLive[F[_]: Applicative]() extends Algebra[F] {
       val price = tempinfo.map(_.priceObj).get
       
       val offset = OffsetDateTime.now()
-      val timeDif = Duration(offset.toEpochSecond - time.toEpochSecond, SECONDS)
+      val timeDif = Duration(offset.toEpochSecond - time.value.toEpochSecond, SECONDS)
       
       if (timeDif <= 300.second){
-        Rate(pair, price, time).asRight[Error].pure[F]
+        Rate(pair, Price(price), time).asRight[Error].pure[F]
       }
       else{
 
@@ -57,7 +62,8 @@ class OneFrameLive[F[_]: Applicative]() extends Algebra[F] {
         
         //val retPrice = jsonRequest.extract[Price]
         val retPrice = (jsonRequest \ "price").extract[String]
-        Memo += pair -> (Price(BigDecimal(retPrice.toInt)), Timestamp.now)
+        val infoToSave = new Info(pair, BigDecimal(retPrice.toInt), Timestamp.now  )
+        Memo += pair -> infoToSave
         Rate(pair, Price(BigDecimal(retPrice.toInt)), Timestamp.now).asRight[Error].pure[F]
       }
     }
@@ -74,7 +80,8 @@ class OneFrameLive[F[_]: Applicative]() extends Algebra[F] {
         
         //val retPrice = jsonRequest.extract[Price]
         val retPrice = (jsonRequest \ "price").extract[String]
-        Memo += pair -> (Price(BigDecimal(retPrice.toInt)), Timestamp.now)
+        val infoToSave = new Info(pair, BigDecimal(retPrice.toInt), Timestamp.now )
+        Memo += pair -> infoToSave
         Rate(pair, Price(BigDecimal(retPrice.toInt)), Timestamp.now).asRight[Error].pure[F]
     }
   }
